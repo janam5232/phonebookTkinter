@@ -58,15 +58,22 @@ class AddContacts(Toplevel):
     def addContact(self):
         firstName = self.enterFirstName.get()
         lastName = self.enterLastName.get()
-        phone = self.enterPhone.get()
+        phone = str(self.enterPhone.get())
 
         if firstName and lastName and phone !="":
-            try:
-                query = "insert into 'contactList' (firstName, lastName, phoneNumber) values (?, ?, ?);"
-                cur.execute(query, (firstName, lastName, phone))
-                con.commit()
-                messagebox.showinfo("Success", "Contact Added")
-            except EXCEPTION as e:
-                messagebox.showerror("Error: ", str(e))
+            queryCheck = "select phoneNumber from 'contactList' where phoneNumber LIKE ?"
+            queryCheckEx = cur.execute(queryCheck, (phone,)).fetchall()
+            if(len(queryCheckEx) >= 1):
+                messagebox.showwarning("Warning: ", "Contact already exists!")
+                self.destroy()
+            else:
+                try:
+                    query = "insert into 'contactList' (firstName, lastName, phoneNumber) values (?, ?, ?);"
+                    cur.execute(query, (firstName, lastName, phone))
+                    con.commit()
+                    messagebox.showinfo("Success", "Contact Added")
+                    self.destroy()
+                except EXCEPTION as e:
+                    messagebox.showerror("Error: ", str(e))
         else:
             messagebox.showerror("Error: ", "fill all the details", icon="warning")
