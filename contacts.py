@@ -35,10 +35,10 @@ class Contacts(Toplevel):
         self.contList.config(yscrollcommand=self.scroll.set)
         self.scroll.grid(row=0, column=1, sticky=N+S)
 
-        contactRecords = cur.execute("select * from 'contactList'").fetchall()
+        contactRecords = cur.execute("select * from 'contactList' order by firstName Asc").fetchall()
         sn = 0
         for contactRecord in contactRecords:
-            self.contList.insert(sn, str(contactRecord[0]) + " " + str(contactRecord[1]) + " " + str(contactRecord[2]) + " " + str(contactRecord[3]))
+            self.contList.insert(sn, str(contactRecord[1]) + " " + str(contactRecord[2]) + " " + str(contactRecord[3]))
             sn += 1
         #buttons
         btnAdd = Button(self.bottom, text='Add Contact', width=15, font='Sans 12 bold', command=self.addCons)
@@ -47,26 +47,30 @@ class Contacts(Toplevel):
         # btnUpdate = Button(self.bottom, text='Update', width=15, font='Sans 12 bold')
         # btnUpdate.grid(row=0, column=2, padx=40, pady=60, sticky=N)
 
-        btnDisplay = Button(self.bottom, text='List Contacts', width=15, font='Sans 12 bold')
-        btnDisplay.grid(row=0, column=2, padx=40, pady=60, sticky=N)
+        # btnDisplay = Button(self.bottom, text='List Contacts', width=15, font='Sans 12 bold')
+        # btnDisplay.grid(row=0, column=2, padx=40, pady=60, sticky=N)
 
         btnDelete = Button(self.bottom, text='Delete', width=15, font='Sans 12 bold', command=self.deleteContact)
-        btnDelete.grid(row=0, column=2, padx=40, pady=110, sticky=N)
+        btnDelete.grid(row=0, column=2, padx=40, pady=60, sticky=N)
     
     def deleteContact(self):
         selectedContact = self.contList.curselection()
         contact = self.contList.get(selectedContact)
-        contactID = contact.split(" ")[0]
+        
+        deleteQueryName = contact.split(" ")[0]
+        deleteQueryNumber = contact.split(" ")[2]
 
-        print(contactID)
+        deleteQuery = "SELECT id FROM contactList WHERE firstName LIKE ? AND phoneNumber LIKE ?;"
+        deleteQueryID = cur.execute(deleteQuery, (deleteQueryName, deleteQueryNumber)).fetchall()
 
-        query = "DELETE FROM contactList WHERE id = {}".format(contactID)
+        query = "DELETE FROM contactList WHERE id = {}".format(deleteQueryID[0][0])
         warnn = messagebox.askquestion("Warning", "Are you sure about deleting this contact?")
         if warnn == 'yes':
             try:
                 cur.execute(query)
                 con.commit()
                 messagebox.showinfo("Success", "Contact Deleted")
+                self.destroy()
             except Exception as e:
                 messagebox.showinfo("Info", str(e))
     def addCons(self):
